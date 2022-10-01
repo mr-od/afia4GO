@@ -22,14 +22,14 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.CreateAccountParams{
 		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
 
-	account, err := server.store.CreateAccount(ctx, arg)
+	account, err := server.Store.CreateAccount(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -57,7 +57,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccount(ctx, req.ID)
+	account, err := server.Store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -68,7 +68,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	if account.Owner != authPayload.Username {
 		err := errors.New("account does not belong to the logged in user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
@@ -89,14 +89,14 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.ListAccountsParams{
 		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := server.store.ListAccounts(ctx, arg)
+	accounts, err := server.Store.ListAccounts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

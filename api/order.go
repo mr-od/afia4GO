@@ -50,7 +50,7 @@ type Product struct {
 func (server *Server) placeOrder(ctx *gin.Context) {
 	// var req Order
 	var mr placeOrderRequest
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 
 	if err := ctx.ShouldBindJSON(&mr); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -65,7 +65,7 @@ func (server *Server) placeOrder(ctx *gin.Context) {
 		Total:       mr.Orders.Total,
 	}
 
-	mainOrder, err := server.store.CreateOrder(ctx, arg)
+	mainOrder, err := server.Store.CreateOrder(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -93,7 +93,7 @@ func (server *Server) placeOrder(ctx *gin.Context) {
 			ProductID: oi.ProductID,
 			Quantity:  oi.Quantity,
 		}
-		oip, err := server.store.CreateOrderItem(ctx, arg2)
+		oip, err := server.Store.CreateOrderItem(ctx, arg2)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok {
 				switch pqErr.Code.Name() {

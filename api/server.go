@@ -12,10 +12,11 @@ import (
 )
 
 type Server struct {
-	config     util.Config
-	store      db.Store
-	tokenMaker token.Maker
-	router     *gin.Engine
+	Config     util.Config
+	Store      db.Store
+	TokenMaker token.Maker
+	Router     *gin.Engine
+	// chatService *chat.SeverC
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
@@ -24,13 +25,13 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 	server := &Server{
-		config:     config,
-		store:      store,
-		tokenMaker: tokenMaker,
+		Config:     config,
+		Store:      store,
+		TokenMaker: tokenMaker,
 	}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("currency", validCurrency)
+		v.RegisterValidation("currency", util.ValidCurrency)
 	}
 	server.setupRouter()
 
@@ -46,7 +47,7 @@ func (server *Server) setupRouter() {
 	router.POST("/api/v1/users/login", server.loginUser)
 	router.POST("/api/v1/tokens/refresh_token", server.renewAccessToken)
 
-	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRoutes := router.Group("/").Use(AuthMiddleware(server.TokenMaker))
 
 	// Accounts Route
 	authRoutes.POST("api/v1/accounts", server.createAccount)
@@ -64,14 +65,49 @@ func (server *Server) setupRouter() {
 	// Transfers Route
 	authRoutes.POST("api/v1/transfers", server.createTransfer)
 
-	server.router = router
+	// Chat Route
+	authRoutes.POST("api/v1/room", server.CreateRoom)
+	authRoutes.GET("api/v1/rooms", server.ListRooms)
+
+	server.Router = router
 
 }
 
 func (server *Server) Start(address string) error {
-	return server.router.Run(address)
+	return server.Router.Run(address)
 }
 
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
+
+// import (
+// 	"net/http"
+
+// 	"github.com/gin-gonic/gin"
+// 	"github.com/oddinnovate/a4go/api/v1"
+// 	db "github.com/oddinnovate/a4go/db/sqlc"
+// 	"github.com/oddinnovate/a4go/token"
+// 	"github.com/oddinnovate/a4go/util"
+// )
+
+// type ChatRoomDTO struct {
+// 	ID   string `json:"id"`
+// 	Name string `json:"name"`
+// }
+
+// type SeverC struct {
+// 	*api.Server
+// }
+
+// func (se *SeverC) CreateChat(ctx *gin.Context) {
+// 	var req ChatRoomDTO
+// 	if err := ctx.ShouldBindJSON(&req); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+// 		return
+// 	}
+
+// 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+// 	arg := db.CreateMessageParams{}
+
+// }

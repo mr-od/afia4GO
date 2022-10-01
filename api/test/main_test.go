@@ -1,4 +1,4 @@
-package api
+package test
 
 import (
 	"os"
@@ -6,21 +6,22 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/oddinnovate/a4go/api"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/util"
 	"github.com/stretchr/testify/require"
 )
 
-func newTestServer(t *testing.T, store db.Store) *Server {
+func NewTestServer(t *testing.T, store db.Store) *api.Server {
 	config := util.Config{
 		TokenSymmetricKey:   util.RandomString(32),
 		AccessTokenDuration: time.Minute,
 	}
 
-	server, err := NewServer(config, store)
+	nserver, err := api.NewServer(config, store)
 	require.NoError(t, err)
 
-	return server
+	return nserver
 }
 
 func TestMain(m *testing.M) {

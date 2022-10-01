@@ -1,4 +1,4 @@
-package api
+package test
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/oddinnovate/a4go/api"
 	mockdb "github.com/oddinnovate/a4go/db/mock"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/token"
@@ -49,7 +50,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
@@ -75,7 +76,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user2.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user2.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
@@ -113,7 +114,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(db.Account{}, sql.ErrNoRows)
@@ -133,7 +134,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
@@ -153,7 +154,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user3.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user3.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account3.ID)).Times(1).Return(account3, nil)
@@ -173,7 +174,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
@@ -193,7 +194,7 @@ func TestTransferAPI(t *testing.T) {
 		// 		"currency":        "XYZ",
 		// 	},
 		// 	setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-		// 		addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+		// 		addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 		// 	},
 		// 	buildStubs: func(store *mockdb.MockStore) {
 		// 		store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Times(0)
@@ -212,7 +213,7 @@ func TestTransferAPI(t *testing.T) {
 		// 		"currency":        util.ENU,
 		// 	},
 		// 	setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-		// 		addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+		// 		addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 		// 	},
 		// 	buildStubs: func(store *mockdb.MockStore) {
 		// 		store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Times(0)
@@ -231,7 +232,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Times(1).Return(db.Account{}, sql.ErrConnDone)
@@ -250,7 +251,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        util.ENU,
 			},
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user1.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user1.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account1.ID)).Times(1).Return(account1, nil)
@@ -273,7 +274,7 @@ func TestTransferAPI(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := newTestServer(t, store)
+			server := NewTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// Marshal body data to JSON
@@ -284,8 +285,8 @@ func TestTransferAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
-			tc.setupAuth(t, request, server.tokenMaker)
-			server.router.ServeHTTP(recorder, request)
+			tc.setupAuth(t, request, server.TokenMaker)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder)
 		})
 	}

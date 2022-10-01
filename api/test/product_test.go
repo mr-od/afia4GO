@@ -1,4 +1,4 @@
-package api
+package test
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/oddinnovate/a4go/api"
 	mockdb "github.com/oddinnovate/a4go/db/mock"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/token"
@@ -34,7 +35,7 @@ func TestGetProduuctAPI(t *testing.T) {
 			name:      "OK",
 			productID: product.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -51,7 +52,7 @@ func TestGetProduuctAPI(t *testing.T) {
 			name:      "NotFound",
 			productID: product.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+				addAuthorization(t, request, tokenMaker, api.AuthorizationTypeBearer, user.Username, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -74,7 +75,7 @@ func TestGetProduuctAPI(t *testing.T) {
 
 			tc.buildStubs(store)
 
-			server := newTestServer(t, store)
+			server := NewTestServer(t, store)
 
 			recorder := httptest.NewRecorder()
 
@@ -82,8 +83,8 @@ func TestGetProduuctAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			tc.setupAuth(t, request, server.tokenMaker)
-			server.router.ServeHTTP(recorder, request)
+			tc.setupAuth(t, request, server.TokenMaker)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
 	}

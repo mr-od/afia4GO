@@ -8,46 +8,47 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oddinnovate/a4go/token"
+	"github.com/oddinnovate/a4go/util"
 )
 
 const (
-	authorizationHeaderKey  = "authorization"
-	authorizationTypeBearer = "bearer"
-	authorizationPayloadKey = "authorization_payload"
+	AuthorizationHeaderKey  = "authorization"
+	AuthorizationTypeBearer = "bearer"
+	AuthorizationPayloadKey = "authorization_payload"
 )
 
-func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
+func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
+		authorizationHeader := ctx.GetHeader(AuthorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
 			err := errors.New("authorization header is not provided")
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, util.ErrorResponse(err))
 			return
 		}
 
 		fields := strings.Fields(authorizationHeader)
 		if len(fields) < 2 {
 			err := errors.New("invalid authrization header format")
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, util.ErrorResponse(err))
 			return
 		}
 
 		authrizationType := strings.ToLower(fields[0])
-		if authrizationType != authorizationTypeBearer {
+		if authrizationType != AuthorizationTypeBearer {
 			err := fmt.Errorf("unsupported authorization type %s", authrizationType)
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, util.ErrorResponse(err))
 			return
 		}
 
 		accessToken := fields[1]
 		payload, err := tokenMaker.VerifyToken(accessToken)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, util.ErrorResponse(err))
 			return
 		}
 
-		ctx.Set(authorizationPayloadKey, payload)
+		ctx.Set(AuthorizationPayloadKey, payload)
 		ctx.Next()
 
 	}

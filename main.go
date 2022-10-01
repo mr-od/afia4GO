@@ -5,7 +5,7 @@ import (
 	"log"
 
 	_ "github.com/lib/pq"
-	"github.com/oddinnovate/a4go/api/v1"
+	"github.com/oddinnovate/a4go/api"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/util"
 )

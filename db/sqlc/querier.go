@@ -14,38 +14,62 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
+	CreateMessage(ctx context.Context, arg CreateMessageParams) (ChatMessage, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
+	CreateRoom(ctx context.Context, arg CreateRoomParams) (ChatRoom, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (ChatSubscription, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	DeleteMessage(ctx context.Context, id int64) error
 	DeleteOrder(ctx context.Context, id int64) error
 	DeleteOrderItem(ctx context.Context, id int64) error
 	DeleteProduct(ctx context.Context, id int64) error
+	DeleteRoom(ctx context.Context, id int64) error
+	DeleteSubscription(ctx context.Context, id int64) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
+	GetMessage(ctx context.Context, id int64) (ChatMessage, error)
+	GetMessageForUpdate(ctx context.Context, id int64) (ChatMessage, error)
 	GetOrder(ctx context.Context, id int64) (Order, error)
 	GetOrderForUpdate(ctx context.Context, id int64) (Order, error)
 	GetOrderItem(ctx context.Context, id int64) (OrderItem, error)
 	GetOrderItemForUpdate(ctx context.Context, id int64) (OrderItem, error)
 	GetProduct(ctx context.Context, id int64) (Product, error)
 	GetProductForUpdate(ctx context.Context, id int64) (Product, error)
+	GetRoom(ctx context.Context, name string) (ChatRoom, error)
+	GetRoomForUpdate(ctx context.Context, id int64) (ChatRoom, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
+	GetSubscription(ctx context.Context, id int64) (ChatSubscription, error)
+	GetSubscriptionForUpdate(ctx context.Context, id int64) (ChatSubscription, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
+	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ChatMessage, error)
 	ListOrderItems(ctx context.Context, arg ListOrderItemsParams) ([]OrderItem, error)
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]Order, error)
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]Product, error)
+	// -- name: ListRooms :many
+	// SELECT * FROM chat_rooms
+	// WHERE owner = $1
+	// ORDER BY id
+	// LIMIT $2
+	// OFFSET $3;
+	ListRooms(ctx context.Context, arg ListRoomsParams) ([]ChatRoom, error)
+	ListSubscriptions(ctx context.Context, arg ListSubscriptionsParams) ([]ChatSubscription, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
+	UpdateMessage(ctx context.Context, arg UpdateMessageParams) (ChatMessage, error)
 	UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error)
 	UpdateOrderItem(ctx context.Context, arg UpdateOrderItemParams) (OrderItem, error)
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) (Product, error)
+	UpdateRoom(ctx context.Context, arg UpdateRoomParams) (ChatRoom, error)
+	UpdateSubscription(ctx context.Context, arg UpdateSubscriptionParams) (ChatSubscription, error)
 }
 
 var _ Querier = (*Queries)(nil)

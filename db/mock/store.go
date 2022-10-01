@@ -81,6 +81,21 @@ func (mr *MockStoreMockRecorder) CreateEntry(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntry", reflect.TypeOf((*MockStore)(nil).CreateEntry), arg0, arg1)
 }
 
+// CreateMessage mocks base method.
+func (m *MockStore) CreateMessage(arg0 context.Context, arg1 db.CreateMessageParams) (db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMessage", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateMessage indicates an expected call of CreateMessage.
+func (mr *MockStoreMockRecorder) CreateMessage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMessage", reflect.TypeOf((*MockStore)(nil).CreateMessage), arg0, arg1)
+}
+
 // CreateOrder mocks base method.
 func (m *MockStore) CreateOrder(arg0 context.Context, arg1 db.CreateOrderParams) (db.Order, error) {
 	m.ctrl.T.Helper()
@@ -126,6 +141,21 @@ func (mr *MockStoreMockRecorder) CreateProduct(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProduct", reflect.TypeOf((*MockStore)(nil).CreateProduct), arg0, arg1)
 }
 
+// CreateRoom mocks base method.
+func (m *MockStore) CreateRoom(arg0 context.Context, arg1 db.CreateRoomParams) (db.ChatRoom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateRoom", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatRoom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRoom indicates an expected call of CreateRoom.
+func (mr *MockStoreMockRecorder) CreateRoom(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoom", reflect.TypeOf((*MockStore)(nil).CreateRoom), arg0, arg1)
+}
+
 // CreateSession mocks base method.
 func (m *MockStore) CreateSession(arg0 context.Context, arg1 db.CreateSessionParams) (db.Session, error) {
 	m.ctrl.T.Helper()
@@ -139,6 +169,21 @@ func (m *MockStore) CreateSession(arg0 context.Context, arg1 db.CreateSessionPar
 func (mr *MockStoreMockRecorder) CreateSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockStore)(nil).CreateSession), arg0, arg1)
+}
+
+// CreateSubscription mocks base method.
+func (m *MockStore) CreateSubscription(arg0 context.Context, arg1 db.CreateSubscriptionParams) (db.ChatSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSubscription", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSubscription indicates an expected call of CreateSubscription.
+func (mr *MockStoreMockRecorder) CreateSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSubscription", reflect.TypeOf((*MockStore)(nil).CreateSubscription), arg0, arg1)
 }
 
 // CreateTransfer mocks base method.
@@ -185,6 +230,20 @@ func (mr *MockStoreMockRecorder) DeleteAccount(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccount", reflect.TypeOf((*MockStore)(nil).DeleteAccount), arg0, arg1)
 }
 
+// DeleteMessage mocks base method.
+func (m *MockStore) DeleteMessage(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMessage", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteMessage indicates an expected call of DeleteMessage.
+func (mr *MockStoreMockRecorder) DeleteMessage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMessage", reflect.TypeOf((*MockStore)(nil).DeleteMessage), arg0, arg1)
+}
+
 // DeleteOrder mocks base method.
 func (m *MockStore) DeleteOrder(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -225,6 +284,34 @@ func (m *MockStore) DeleteProduct(arg0 context.Context, arg1 int64) error {
 func (mr *MockStoreMockRecorder) DeleteProduct(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteProduct", reflect.TypeOf((*MockStore)(nil).DeleteProduct), arg0, arg1)
+}
+
+// DeleteRoom mocks base method.
+func (m *MockStore) DeleteRoom(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRoom", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRoom indicates an expected call of DeleteRoom.
+func (mr *MockStoreMockRecorder) DeleteRoom(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoom", reflect.TypeOf((*MockStore)(nil).DeleteRoom), arg0, arg1)
+}
+
+// DeleteSubscription mocks base method.
+func (m *MockStore) DeleteSubscription(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSubscription", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSubscription indicates an expected call of DeleteSubscription.
+func (mr *MockStoreMockRecorder) DeleteSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSubscription", reflect.TypeOf((*MockStore)(nil).DeleteSubscription), arg0, arg1)
 }
 
 // GetAccount mocks base method.
@@ -270,6 +357,36 @@ func (m *MockStore) GetEntry(arg0 context.Context, arg1 int64) (db.Entry, error)
 func (mr *MockStoreMockRecorder) GetEntry(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEntry", reflect.TypeOf((*MockStore)(nil).GetEntry), arg0, arg1)
+}
+
+// GetMessage mocks base method.
+func (m *MockStore) GetMessage(arg0 context.Context, arg1 int64) (db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessage", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessage indicates an expected call of GetMessage.
+func (mr *MockStoreMockRecorder) GetMessage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessage", reflect.TypeOf((*MockStore)(nil).GetMessage), arg0, arg1)
+}
+
+// GetMessageForUpdate mocks base method.
+func (m *MockStore) GetMessageForUpdate(arg0 context.Context, arg1 int64) (db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMessageForUpdate", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMessageForUpdate indicates an expected call of GetMessageForUpdate.
+func (mr *MockStoreMockRecorder) GetMessageForUpdate(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMessageForUpdate", reflect.TypeOf((*MockStore)(nil).GetMessageForUpdate), arg0, arg1)
 }
 
 // GetOrder mocks base method.
@@ -362,6 +479,36 @@ func (mr *MockStoreMockRecorder) GetProductForUpdate(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductForUpdate", reflect.TypeOf((*MockStore)(nil).GetProductForUpdate), arg0, arg1)
 }
 
+// GetRoom mocks base method.
+func (m *MockStore) GetRoom(arg0 context.Context, arg1 int64) (db.ChatRoom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRoom", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatRoom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoom indicates an expected call of GetRoom.
+func (mr *MockStoreMockRecorder) GetRoom(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoom", reflect.TypeOf((*MockStore)(nil).GetRoom), arg0, arg1)
+}
+
+// GetRoomForUpdate mocks base method.
+func (m *MockStore) GetRoomForUpdate(arg0 context.Context, arg1 int64) (db.ChatRoom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRoomForUpdate", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatRoom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoomForUpdate indicates an expected call of GetRoomForUpdate.
+func (mr *MockStoreMockRecorder) GetRoomForUpdate(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoomForUpdate", reflect.TypeOf((*MockStore)(nil).GetRoomForUpdate), arg0, arg1)
+}
+
 // GetSession mocks base method.
 func (m *MockStore) GetSession(arg0 context.Context, arg1 uuid.UUID) (db.Session, error) {
 	m.ctrl.T.Helper()
@@ -375,6 +522,36 @@ func (m *MockStore) GetSession(arg0 context.Context, arg1 uuid.UUID) (db.Session
 func (mr *MockStoreMockRecorder) GetSession(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), arg0, arg1)
+}
+
+// GetSubscription mocks base method.
+func (m *MockStore) GetSubscription(arg0 context.Context, arg1 int64) (db.ChatSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubscription", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubscription indicates an expected call of GetSubscription.
+func (mr *MockStoreMockRecorder) GetSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscription", reflect.TypeOf((*MockStore)(nil).GetSubscription), arg0, arg1)
+}
+
+// GetSubscriptionForUpdate mocks base method.
+func (m *MockStore) GetSubscriptionForUpdate(arg0 context.Context, arg1 int64) (db.ChatSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSubscriptionForUpdate", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSubscriptionForUpdate indicates an expected call of GetSubscriptionForUpdate.
+func (mr *MockStoreMockRecorder) GetSubscriptionForUpdate(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSubscriptionForUpdate", reflect.TypeOf((*MockStore)(nil).GetSubscriptionForUpdate), arg0, arg1)
 }
 
 // GetTransfer mocks base method.
@@ -437,6 +614,21 @@ func (mr *MockStoreMockRecorder) ListEntries(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntries", reflect.TypeOf((*MockStore)(nil).ListEntries), arg0, arg1)
 }
 
+// ListMessages mocks base method.
+func (m *MockStore) ListMessages(arg0 context.Context, arg1 db.ListMessagesParams) ([]db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListMessages", arg0, arg1)
+	ret0, _ := ret[0].([]db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMessages indicates an expected call of ListMessages.
+func (mr *MockStoreMockRecorder) ListMessages(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMessages", reflect.TypeOf((*MockStore)(nil).ListMessages), arg0, arg1)
+}
+
 // ListOrderItems mocks base method.
 func (m *MockStore) ListOrderItems(arg0 context.Context, arg1 db.ListOrderItemsParams) ([]db.OrderItem, error) {
 	m.ctrl.T.Helper()
@@ -480,6 +672,36 @@ func (m *MockStore) ListProducts(arg0 context.Context, arg1 db.ListProductsParam
 func (mr *MockStoreMockRecorder) ListProducts(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListProducts", reflect.TypeOf((*MockStore)(nil).ListProducts), arg0, arg1)
+}
+
+// ListRooms mocks base method.
+func (m *MockStore) ListRooms(arg0 context.Context, arg1 db.ListRoomsParams) ([]db.ChatRoom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListRooms", arg0, arg1)
+	ret0, _ := ret[0].([]db.ChatRoom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListRooms indicates an expected call of ListRooms.
+func (mr *MockStoreMockRecorder) ListRooms(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListRooms", reflect.TypeOf((*MockStore)(nil).ListRooms), arg0, arg1)
+}
+
+// ListSubscriptions mocks base method.
+func (m *MockStore) ListSubscriptions(arg0 context.Context, arg1 db.ListSubscriptionsParams) ([]db.ChatSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSubscriptions", arg0, arg1)
+	ret0, _ := ret[0].([]db.ChatSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSubscriptions indicates an expected call of ListSubscriptions.
+func (mr *MockStoreMockRecorder) ListSubscriptions(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSubscriptions", reflect.TypeOf((*MockStore)(nil).ListSubscriptions), arg0, arg1)
 }
 
 // ListTransfers mocks base method.
@@ -527,6 +749,21 @@ func (mr *MockStoreMockRecorder) UpdateAccount(arg0, arg1 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockStore)(nil).UpdateAccount), arg0, arg1)
 }
 
+// UpdateMessage mocks base method.
+func (m *MockStore) UpdateMessage(arg0 context.Context, arg1 db.UpdateMessageParams) (db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateMessage", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateMessage indicates an expected call of UpdateMessage.
+func (mr *MockStoreMockRecorder) UpdateMessage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMessage", reflect.TypeOf((*MockStore)(nil).UpdateMessage), arg0, arg1)
+}
+
 // UpdateOrder mocks base method.
 func (m *MockStore) UpdateOrder(arg0 context.Context, arg1 db.UpdateOrderParams) (db.Order, error) {
 	m.ctrl.T.Helper()
@@ -570,4 +807,34 @@ func (m *MockStore) UpdateProduct(arg0 context.Context, arg1 db.UpdateProductPar
 func (mr *MockStoreMockRecorder) UpdateProduct(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProduct", reflect.TypeOf((*MockStore)(nil).UpdateProduct), arg0, arg1)
+}
+
+// UpdateRoom mocks base method.
+func (m *MockStore) UpdateRoom(arg0 context.Context, arg1 db.UpdateRoomParams) (db.ChatRoom, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRoom", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatRoom)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateRoom indicates an expected call of UpdateRoom.
+func (mr *MockStoreMockRecorder) UpdateRoom(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRoom", reflect.TypeOf((*MockStore)(nil).UpdateRoom), arg0, arg1)
+}
+
+// UpdateSubscription mocks base method.
+func (m *MockStore) UpdateSubscription(arg0 context.Context, arg1 db.UpdateSubscriptionParams) (db.ChatSubscription, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSubscription", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatSubscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSubscription indicates an expected call of UpdateSubscription.
+func (mr *MockStoreMockRecorder) UpdateSubscription(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSubscription", reflect.TypeOf((*MockStore)(nil).UpdateSubscription), arg0, arg1)
 }

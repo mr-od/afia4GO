@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,36 @@ type Account struct {
 	Balance   int64     `json:"balance"`
 	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
+}
+
+type ChatMessage struct {
+	ID         int64        `json:"id"`
+	ChatRoomID int64        `json:"chat_room_id"`
+	Username   string       `json:"username"`
+	PublicID   string       `json:"public_id"`
+	Body       string       `json:"body"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	DeletedAt  sql.NullTime `json:"deleted_at"`
+}
+
+type ChatRoom struct {
+	ID        int64        `json:"id"`
+	Name      string       `json:"name"`
+	PublicID  string       `json:"public_id"`
+	Owner     string       `json:"owner"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+	DeletedAt sql.NullTime `json:"deleted_at"`
+}
+
+type ChatSubscription struct {
+	ID         int64        `json:"id"`
+	ChatRoomID int64        `json:"chat_room_id"`
+	Username   string       `json:"username"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	DeletedAt  sql.NullTime `json:"deleted_at"`
 }
 
 type Entry struct {

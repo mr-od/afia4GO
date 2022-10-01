@@ -1,6 +1,6 @@
 -- SQL dump generated using DBML (dbml-lang.org)
 -- Database: PostgreSQL
--- Generated at: 2022-09-26T13:34:55.593Z
+-- Generated at: 2022-10-01T10:28:08.216Z
 
 CREATE TABLE "users" (
   "username" varchar PRIMARY KEY,
@@ -65,6 +65,36 @@ CREATE TABLE "order_items" (
   "created_at" timestamptz NOT NULL DEFAULT 'now()'
 );
 
+CREATE TABLE "chat_rooms" (
+  "id" bigserial PRIMARY KEY,
+  "name" varchar UNIQUE NOT NULL,
+  "public_id" varchar UNIQUE NOT NULL,
+  "owner" varchar NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT 'now()',
+  "updated_at" timestamptz NOT NULL DEFAULT 'now()',
+  "deleted_at" timestamptz DEFAULT 'now()'
+);
+
+CREATE TABLE "chat_subscriptions" (
+  "id" bigserial PRIMARY KEY,
+  "chat_room_id" bigint NOT NULL,
+  "username" varchar NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT 'now()',
+  "updated_at" timestamptz NOT NULL DEFAULT 'now()',
+  "deleted_at" timestamptz DEFAULT 'now()'
+);
+
+CREATE TABLE "chat_messages" (
+  "id" bigserial PRIMARY KEY,
+  "chat_room_id" bigint NOT NULL,
+  "username" varchar NOT NULL,
+  "public_id" varchar NOT NULL,
+  "body" text NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT 'now()',
+  "updated_at" timestamptz NOT NULL DEFAULT 'now()',
+  "deleted_at" timestamptz DEFAULT 'now()'
+);
+
 CREATE INDEX ON "accounts" ("owner");
 
 CREATE UNIQUE INDEX ON "accounts" ("owner", "currency");
@@ -104,3 +134,13 @@ ALTER TABLE "order_items" ADD FOREIGN KEY ("owner") REFERENCES "users" ("usernam
 ALTER TABLE "order_items" ADD FOREIGN KEY ("order_id") REFERENCES "orders" ("id");
 
 ALTER TABLE "order_items" ADD FOREIGN KEY ("product_id") REFERENCES "products" ("id");
+
+ALTER TABLE "chat_rooms" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username");
+
+ALTER TABLE "chat_subscriptions" ADD FOREIGN KEY ("chat_room_id") REFERENCES "chat_rooms" ("id");
+
+ALTER TABLE "chat_subscriptions" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");
+
+ALTER TABLE "chat_messages" ADD FOREIGN KEY ("chat_room_id") REFERENCES "chat_rooms" ("id");
+
+ALTER TABLE "chat_messages" ADD FOREIGN KEY ("username") REFERENCES "users" ("username");

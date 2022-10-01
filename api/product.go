@@ -25,7 +25,7 @@ type createProductRequest struct {
 }
 
 func (server *Server) addProduct(ctx *gin.Context) {
-	var cf = server.config
+	var cf = server.Config
 	var req createProductRequest
 	if err := ctx.ShouldBind(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -77,7 +77,7 @@ func (server *Server) addProduct(ctx *gin.Context) {
 
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.CreateProductParams{
 		Owner:       authPayload.Username,
 		Name:        req.Name,
@@ -87,7 +87,7 @@ func (server *Server) addProduct(ctx *gin.Context) {
 		ImgsUrl:     imgs_url,
 	}
 
-	product, err := server.store.CreateProduct(ctx, arg)
+	product, err := server.Store.CreateProduct(ctx, arg)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -115,7 +115,7 @@ func (server *Server) getProduct(ctx *gin.Context) {
 		return
 	}
 
-	product, err := server.store.GetProduct(ctx, req.ID)
+	product, err := server.Store.GetProduct(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -126,7 +126,7 @@ func (server *Server) getProduct(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	if product.Owner != authPayload.Username {
 		err := errors.New("product does not belong to the logged in user")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
@@ -147,14 +147,14 @@ func (server *Server) listProducts(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
 	arg := db.ListProductsParams{
 		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	products, err := server.store.ListProducts(ctx, arg)
+	products, err := server.Store.ListProducts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

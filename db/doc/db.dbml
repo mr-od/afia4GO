@@ -95,3 +95,33 @@ Table order_items {
     owner
   }
 }
+
+Table chat_rooms as CR {
+  id bigserial [pk]
+  name varchar [unique, not null]
+  public_id varchar [unique, not null]
+  owner varchar [ref: > U.username, not null]
+  created_at timestamptz [not null, default: 'now()']
+  updated_at timestamptz [not null, default: 'now()']
+  deleted_at timestamptz [default: 'now()']
+}
+
+Table chat_subscriptions {
+  id bigserial [pk]
+  chat_room_id bigint [ref: > CR.id, not null]
+  username varchar [ref: > U.username, not null]
+  created_at timestamptz [not null, default: 'now()']
+  updated_at timestamptz [not null, default: 'now()']
+  deleted_at timestamptz [default: 'now()']
+}
+
+Table chat_messages {
+  id bigserial [pk]
+  chat_room_id bigint [ref: > CR.id, not null]
+  username varchar [ref: > U.username, not null]
+  public_id varchar [not null]
+  body text [not null]
+  created_at timestamptz [not null, default: 'now()']
+  updated_at timestamptz [not null, default: 'now()']
+  deleted_at timestamptz [default: 'now()']
+}
