@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+
 	"github.com/lib/pq"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/util"
@@ -54,6 +55,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		HashedPassword: hashedPassword,
 		FullName:       req.FullName,
 		Email:          req.Email,
+		PublicID:       uuid.NewString(),
 	}
 
 	user, err := server.Store.CreateUser(ctx, arg)

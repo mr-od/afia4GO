@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ type ChatRoomRequest struct {
 // 	*api.Server
 // }
 
-func (cs *Server) CreateRoom(ctx *gin.Context) {
+func (cs *Server) CreateRoomHandler(ctx *gin.Context) {
 	var req ChatRoomRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
@@ -56,7 +57,7 @@ type listRoomsRequest struct {
 	PageSize int32 `form:"page_size" binding:"required,min=1,max=10"`
 }
 
-func (cs *Server) ListRooms(ctx *gin.Context) {
+func (cs *Server) ListRoomsHandler(ctx *gin.Context) {
 	var req listRoomsRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -77,4 +78,66 @@ func (cs *Server) ListRooms(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, rooms)
+}
+
+type getChatHistoryRequest struct {
+	RoomID int64 `json:"room_id"`
+}
+
+func (cs *Server) GetChatHistoryHandler(ctx *gin.Context) {
+	var req getChatHistoryRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	messages, err := cs.Store.GetChatHistory(ctx, req.RoomID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, messages)
+
+}
+
+type MessageRequest struct {
+	Body string `json:"body"`
+}
+
+func (cs *Server) SaveMessageHandler(ctx *gin.Context) {
+	var req MessageRequest
+	var req2 db.ChatRoom
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
+	arg := db.SaveMessageParams{
+		Body:       req.Body,
+		Username:   authPayload.Username,
+		ChatRoomID: req2.ID,
+		PublicID:   uuid.NewV4().String(),
+	}
+
+	message, err := cs.Store.SaveMessage(ctx, arg)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, util.ErrorResponse(err))
+				return
+
+			}
+		}
+		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, message)
 }

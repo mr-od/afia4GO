@@ -1,11 +1,12 @@
 -- SQL dump generated using DBML (dbml-lang.org)
 -- Database: PostgreSQL
--- Generated at: 2022-10-01T10:28:08.216Z
+-- Generated at: 2022-10-02T03:09:55.501Z
 
 CREATE TABLE "users" (
   "username" varchar PRIMARY KEY,
+  "public_id" varchar UNIQUE,
   "hashed_password" varchar NOT NULL,
-  "fullname" varchar NOT NULL,
+  "full_name" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
   "password_changed_at" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00Z',
   "created_at" timestamptz NOT NULL DEFAULT 'now()'
@@ -90,9 +91,7 @@ CREATE TABLE "chat_messages" (
   "username" varchar NOT NULL,
   "public_id" varchar NOT NULL,
   "body" text NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT 'now()',
-  "updated_at" timestamptz NOT NULL DEFAULT 'now()',
-  "deleted_at" timestamptz DEFAULT 'now()'
+  "created_at" timestamptz NOT NULL DEFAULT 'now()'
 );
 
 CREATE INDEX ON "accounts" ("owner");

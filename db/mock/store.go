@@ -81,21 +81,6 @@ func (mr *MockStoreMockRecorder) CreateEntry(arg0, arg1 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntry", reflect.TypeOf((*MockStore)(nil).CreateEntry), arg0, arg1)
 }
 
-// CreateMessage mocks base method.
-func (m *MockStore) CreateMessage(arg0 context.Context, arg1 db.CreateMessageParams) (db.ChatMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateMessage", arg0, arg1)
-	ret0, _ := ret[0].(db.ChatMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// CreateMessage indicates an expected call of CreateMessage.
-func (mr *MockStoreMockRecorder) CreateMessage(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMessage", reflect.TypeOf((*MockStore)(nil).CreateMessage), arg0, arg1)
-}
-
 // CreateOrder mocks base method.
 func (m *MockStore) CreateOrder(arg0 context.Context, arg1 db.CreateOrderParams) (db.Order, error) {
 	m.ctrl.T.Helper()
@@ -344,6 +329,21 @@ func (mr *MockStoreMockRecorder) GetAccountForUpdate(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountForUpdate", reflect.TypeOf((*MockStore)(nil).GetAccountForUpdate), arg0, arg1)
 }
 
+// GetChatHistory mocks base method.
+func (m *MockStore) GetChatHistory(arg0 context.Context, arg1 int64) ([]db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetChatHistory", arg0, arg1)
+	ret0, _ := ret[0].([]db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetChatHistory indicates an expected call of GetChatHistory.
+func (mr *MockStoreMockRecorder) GetChatHistory(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetChatHistory", reflect.TypeOf((*MockStore)(nil).GetChatHistory), arg0, arg1)
+}
+
 // GetEntry mocks base method.
 func (m *MockStore) GetEntry(arg0 context.Context, arg1 int64) (db.Entry, error) {
 	m.ctrl.T.Helper()
@@ -480,7 +480,7 @@ func (mr *MockStoreMockRecorder) GetProductForUpdate(arg0, arg1 interface{}) *go
 }
 
 // GetRoom mocks base method.
-func (m *MockStore) GetRoom(arg0 context.Context, arg1 int64) (db.ChatRoom, error) {
+func (m *MockStore) GetRoom(arg0 context.Context, arg1 string) (db.ChatRoom, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRoom", arg0, arg1)
 	ret0, _ := ret[0].(db.ChatRoom)
@@ -717,6 +717,21 @@ func (m *MockStore) ListTransfers(arg0 context.Context, arg1 db.ListTransfersPar
 func (mr *MockStoreMockRecorder) ListTransfers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTransfers", reflect.TypeOf((*MockStore)(nil).ListTransfers), arg0, arg1)
+}
+
+// SaveMessage mocks base method.
+func (m *MockStore) SaveMessage(arg0 context.Context, arg1 db.SaveMessageParams) (db.ChatMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SaveMessage", arg0, arg1)
+	ret0, _ := ret[0].(db.ChatMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SaveMessage indicates an expected call of SaveMessage.
+func (mr *MockStoreMockRecorder) SaveMessage(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveMessage", reflect.TypeOf((*MockStore)(nil).SaveMessage), arg0, arg1)
 }
 
 // TransferTx mocks base method.

@@ -2,10 +2,15 @@ package api
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/gorilla/websocket"
+	"github.com/oddinnovate/a4go/chat"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/token"
 	"github.com/oddinnovate/a4go/util"
@@ -66,8 +71,8 @@ func (server *Server) setupRouter() {
 	authRoutes.POST("api/v1/transfers", server.createTransfer)
 
 	// Chat Route
-	authRoutes.POST("api/v1/room", server.CreateRoom)
-	authRoutes.GET("api/v1/rooms", server.ListRooms)
+	authRoutes.POST("api/v1/room", server.CreateRoomHandler)
+	authRoutes.GET("api/v1/rooms", server.ListRoomsHandler)
 
 	server.Router = router
 
@@ -81,33 +86,70 @@ func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
 
-// import (
-// 	"net/http"
+// serveWs handles websocket requests from the peer.
+func (s *Server) serveWs(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
-// 	"github.com/gin-gonic/gin"
-// 	"github.com/oddinnovate/a4go/api/v1"
-// 	db "github.com/oddinnovate/a4go/db/sqlc"
-// 	"github.com/oddinnovate/a4go/token"
-// 	"github.com/oddinnovate/a4go/util"
-// )
+	u, err := authenticateSocket(conn, s.jwt)
+	if err != nil {
+		if err1 := conn.WriteJSON(chat.Message{
+			Type: chat.MessageTypeUnauthorizedErr,
+			Body: chat.ServerErrorMessage{
+				Message: "Auth error occurred",
+			},
+		}); err != nil {
+			log.Fatal("Got err while sending auth message: %v", err1)
+		}
+		if err2 := conn.Close(); err2 != nil {
+			log.Fatal("Got err while closing socket during auth: %v", err2)
+		}
+		return
+	}
 
-// type ChatRoomDTO struct {
-// 	ID   string `json:"id"`
-// 	Name string `json:"name"`
-// }
+	m := Message{
+		Type: MessageTypeAuthAck,
+		Body: "Authentication success",
+	}
+	if err := conn.WriteJSON(&m); err != nil {
+		log.Errorf("Err while authack %v", err)
+		if err2 := conn.Close(); err2 != nil {
+			log.Errorf("Got err while closing socket during auth: %v", err2)
+		}
+		return
+	}
 
-// type SeverC struct {
-// 	*api.Server
-// }
+	client := newClient(s.hub, s.gnats, conn, s.chatService, u)
+	client.hub.register <- client
 
-// func (se *SeverC) CreateChat(ctx *gin.Context) {
-// 	var req ChatRoomDTO
-// 	if err := ctx.ShouldBindJSON(&req); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
-// 		return
-// 	}
+	// Allow collection of memory referenced by the caller by doing all work in
+	// new goroutines.
+	go client.writePump()
+	go client.readPump()
+}
 
-// 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-// 	arg := db.CreateMessageParams{}
+type AuthRequest struct {
+	Token string `binding:"required"`
+}
 
-// }
+func authenticateSocket(conn *websocket.Conn, jwt *auth.JWT) (*auth.JWTUser, error) {
+	if err := conn.SetReadDeadline(time.Now().Add(10 * time.Second)); err != nil {
+		log.Errorf("Error occurred while setting write deadline during auth: %v", err)
+		return nil, err
+	}
+
+	var r AuthRequest
+	if err := conn.ReadJSON(&r); err != nil {
+		return nil, err
+	}
+
+	j, err := jwt.ParseAndValidateJWT(r.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	return &j, nil
+}

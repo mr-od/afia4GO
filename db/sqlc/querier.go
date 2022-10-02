@@ -14,7 +14,6 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
-	CreateMessage(ctx context.Context, arg CreateMessageParams) (ChatMessage, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
 	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
@@ -32,6 +31,7 @@ type Querier interface {
 	DeleteSubscription(ctx context.Context, id int64) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
+	GetChatHistory(ctx context.Context, chatRoomID int64) ([]ChatMessage, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
 	GetMessage(ctx context.Context, id int64) (ChatMessage, error)
 	GetMessageForUpdate(ctx context.Context, id int64) (ChatMessage, error)
@@ -63,6 +63,7 @@ type Querier interface {
 	ListRooms(ctx context.Context, arg ListRoomsParams) ([]ChatRoom, error)
 	ListSubscriptions(ctx context.Context, arg ListSubscriptionsParams) ([]ChatSubscription, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
+	SaveMessage(ctx context.Context, arg SaveMessageParams) (ChatMessage, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateMessage(ctx context.Context, arg UpdateMessageParams) (ChatMessage, error)
 	UpdateOrder(ctx context.Context, arg UpdateOrderParams) (Order, error)

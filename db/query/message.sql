@@ -1,4 +1,4 @@
--- name: CreateMessage :one
+-- name: SaveMessage :one
 INSERT INTO chat_messages (
   chat_room_id,
   username,
@@ -17,6 +17,10 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM chat_messages
 WHERE id = $1 LIMIT 1
 FOR NO KEY UPDATE;
+
+-- name: GetChatHistory :many
+SELECT * FROM chat_messages
+WHERE chat_room_id = $1;
 
 
 -- name: ListMessages :many

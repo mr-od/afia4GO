@@ -23,9 +23,7 @@ CREATE TABLE "chat_messages" (
   "username" varchar NOT NULL,
   "public_id" varchar NOT NULL,
   "body" text NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT 'now()',
-  "updated_at" timestamptz NOT NULL DEFAULT 'now()',
-  "deleted_at" timestamptz DEFAULT 'now()'
+  "created_at" timestamptz NOT NULL DEFAULT 'now()'
 );
 
 

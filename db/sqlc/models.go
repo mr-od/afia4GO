@@ -20,14 +20,12 @@ type Account struct {
 }
 
 type ChatMessage struct {
-	ID         int64        `json:"id"`
-	ChatRoomID int64        `json:"chat_room_id"`
-	Username   string       `json:"username"`
-	PublicID   string       `json:"public_id"`
-	Body       string       `json:"body"`
-	CreatedAt  time.Time    `json:"created_at"`
-	UpdatedAt  time.Time    `json:"updated_at"`
-	DeletedAt  sql.NullTime `json:"deleted_at"`
+	ID         int64     `json:"id"`
+	ChatRoomID int64     `json:"chat_room_id"`
+	Username   string    `json:"username"`
+	PublicID   string    `json:"public_id"`
+	Body       string    `json:"body"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type ChatRoom struct {
@@ -109,6 +107,7 @@ type Transfer struct {
 
 type User struct {
 	Username          string    `json:"username"`
+	PublicID          string    `json:"public_id"`
 	HashedPassword    string    `json:"hashed_password"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`

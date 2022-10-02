@@ -9,46 +9,6 @@ import (
 	"context"
 )
 
-const createMessage = `-- name: CreateMessage :one
-INSERT INTO chat_messages (
-  chat_room_id,
-  username,
-  public_id,
-  body
-) VALUES (
-  $1, $2, $3, $4
-)
-RETURNING id, chat_room_id, username, public_id, body, created_at, updated_at, deleted_at
-`
-
-type CreateMessageParams struct {
-	ChatRoomID int64  `json:"chat_room_id"`
-	Username   string `json:"username"`
-	PublicID   string `json:"public_id"`
-	Body       string `json:"body"`
-}
-
-func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (ChatMessage, error) {
-	row := q.db.QueryRowContext(ctx, createMessage,
-		arg.ChatRoomID,
-		arg.Username,
-		arg.PublicID,
-		arg.Body,
-	)
-	var i ChatMessage
-	err := row.Scan(
-		&i.ID,
-		&i.ChatRoomID,
-		&i.Username,
-		&i.PublicID,
-		&i.Body,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
-	)
-	return i, err
-}
-
 const deleteMessage = `-- name: DeleteMessage :exec
 DELETE FROM chat_messages
 WHERE id = $1
@@ -59,8 +19,43 @@ func (q *Queries) DeleteMessage(ctx context.Context, id int64) error {
 	return err
 }
 
+const getChatHistory = `-- name: GetChatHistory :many
+SELECT id, chat_room_id, username, public_id, body, created_at FROM chat_messages
+WHERE chat_room_id = $1
+`
+
+func (q *Queries) GetChatHistory(ctx context.Context, chatRoomID int64) ([]ChatMessage, error) {
+	rows, err := q.db.QueryContext(ctx, getChatHistory, chatRoomID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ChatMessage{}
+	for rows.Next() {
+		var i ChatMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChatRoomID,
+			&i.Username,
+			&i.PublicID,
+			&i.Body,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMessage = `-- name: GetMessage :one
-SELECT id, chat_room_id, username, public_id, body, created_at, updated_at, deleted_at FROM chat_messages
+SELECT id, chat_room_id, username, public_id, body, created_at FROM chat_messages
 WHERE id = $1 LIMIT 1
 `
 
@@ -74,14 +69,12 @@ func (q *Queries) GetMessage(ctx context.Context, id int64) (ChatMessage, error)
 		&i.PublicID,
 		&i.Body,
 		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getMessageForUpdate = `-- name: GetMessageForUpdate :one
-SELECT id, chat_room_id, username, public_id, body, created_at, updated_at, deleted_at FROM chat_messages
+SELECT id, chat_room_id, username, public_id, body, created_at FROM chat_messages
 WHERE id = $1 LIMIT 1
 FOR NO KEY UPDATE
 `
@@ -96,14 +89,12 @@ func (q *Queries) GetMessageForUpdate(ctx context.Context, id int64) (ChatMessag
 		&i.PublicID,
 		&i.Body,
 		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const listMessages = `-- name: ListMessages :many
-SELECT id, chat_room_id, username, public_id, body, created_at, updated_at, deleted_at FROM chat_messages
+SELECT id, chat_room_id, username, public_id, body, created_at FROM chat_messages
 WHERE chat_room_id = $1
 ORDER BY id
 LIMIT $2
@@ -132,8 +123,6 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]C
 			&i.PublicID,
 			&i.Body,
 			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -148,11 +137,49 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]C
 	return items, nil
 }
 
+const saveMessage = `-- name: SaveMessage :one
+INSERT INTO chat_messages (
+  chat_room_id,
+  username,
+  public_id,
+  body
+) VALUES (
+  $1, $2, $3, $4
+)
+RETURNING id, chat_room_id, username, public_id, body, created_at
+`
+
+type SaveMessageParams struct {
+	ChatRoomID int64  `json:"chat_room_id"`
+	Username   string `json:"username"`
+	PublicID   string `json:"public_id"`
+	Body       string `json:"body"`
+}
+
+func (q *Queries) SaveMessage(ctx context.Context, arg SaveMessageParams) (ChatMessage, error) {
+	row := q.db.QueryRowContext(ctx, saveMessage,
+		arg.ChatRoomID,
+		arg.Username,
+		arg.PublicID,
+		arg.Body,
+	)
+	var i ChatMessage
+	err := row.Scan(
+		&i.ID,
+		&i.ChatRoomID,
+		&i.Username,
+		&i.PublicID,
+		&i.Body,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateMessage = `-- name: UpdateMessage :one
 UPDATE chat_messages
 SET chat_room_id = $2
 WHERE id = $1
-RETURNING id, chat_room_id, username, public_id, body, created_at, updated_at, deleted_at
+RETURNING id, chat_room_id, username, public_id, body, created_at
 `
 
 type UpdateMessageParams struct {
@@ -170,8 +197,6 @@ func (q *Queries) UpdateMessage(ctx context.Context, arg UpdateMessageParams) (C
 		&i.PublicID,
 		&i.Body,
 		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.DeletedAt,
 	)
 	return i, err
 }
