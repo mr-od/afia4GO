@@ -1,17 +1,20 @@
-package main
+package api
 
 import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/oddinnovate/a4go/api"
-	"github.com/oddinnovate/a4go/chat"
+	"github.com/gin-gonic/gin"
+	dto "github.com/oddinnovate/a4go/DTO"
+	db "github.com/oddinnovate/a4go/db/sqlc"
+	"github.com/oddinnovate/a4go/token"
 	"github.com/oddinnovate/a4go/util"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 
 	"gopkg.in/go-playground/validator.v8"
@@ -19,24 +22,9 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ChatMessage struct {
-	ID       string `json:"id"`
-	ClientID string `validate:"required" json:"clientId"`
-	Channel  string `validate:"required" json:"channel"`
-	Content  string `validate:"required" json:"content"`
-}
-
-type ChatMessageDTO struct {
-	ID         string    `json:"id"`
-	ChatRoomID string    `json:"chatRoomId"`
-	CreatedAt  time.Time `json:"createdAt"`
-	Body       string    `json:"body"`
-	Username   string    `json:"username"`
-}
-
 func init() {
 	gob.Register(ChatMessage{})
-	gob.Register(ChatMessageDTO{})
+	gob.Register(dto.ChatMessageDTO{})
 }
 
 const (
@@ -58,13 +46,13 @@ var (
 	space   = []byte{' '}
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+// var upgrader = websocket.Upgrader{
+// 	ReadBufferSize:  1024,
+// 	WriteBufferSize: 1024,
+// 	CheckOrigin: func(r *http.Request) bool {
+// 		return true
+// 	},
+// }
 
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
@@ -78,17 +66,22 @@ type Client struct {
 	// The websocket connection.
 	conn *websocket.Conn
 
-	user *chat.JWTUser
+	user *token.Payload
 
-	cs *api.Server
+	cs *db.Queries
+
+	// cs *chat.Service
 
 	validate *validator.Validate
+
+	// Call Gin Context
+	ctx *gin.Context
 
 	// Buffered channel of outbound messages.
 	send chan []byte
 }
 
-func newClient(hub *Hub, gnats *Gnats, conn *websocket.Conn, cs *api.Server, user *chat.JWTUser) *Client {
+func newClient(hub *Hub, gnats *Gnats, conn *websocket.Conn, cs *db.Queries, user *token.Payload) *Client {
 	return &Client{
 		hub:      hub,
 		gnats:    gnats,
@@ -103,7 +96,7 @@ func newClient(hub *Hub, gnats *Gnats, conn *websocket.Conn, cs *api.Server, use
 
 func (c *Client) handleMessage(bts []byte) {
 	var raw json.RawMessage
-	m := chat.Message{
+	m := Message{
 		Body: &raw,
 	}
 	err := json.Unmarshal(bts, &m)
@@ -112,7 +105,7 @@ func (c *Client) handleMessage(bts []byte) {
 		return
 	}
 
-	i, f := chat.TypeMap[m.Type]
+	i, f := TypeMap[m.Type]
 	if !f {
 		c.send <- []byte("invalid msg type")
 		return
@@ -136,9 +129,9 @@ func (c *Client) handleMessage(bts []byte) {
 		ves := util.FormatValidationErrors(errs)
 
 		m.Body = msg
-		errMsg := chat.Message{
-			Type: chat.MessageTypeValidationErr,
-			Body: chat.ValidationErrorMessage{
+		errMsg := Message{
+			Type: MessageTypeValidationErr,
+			Body: ValidationErrorMessage{
 				OriginalMessage: string(bts),
 				Errors:          ves,
 			},
@@ -156,8 +149,8 @@ func (c *Client) handleMessage(bts []byte) {
 	}
 
 	switch msg := msg.(type) {
-	case *chat.SubscriptionMessage:
-		if m.Type == chat.MessageTypeSub {
+	case *SubscriptionMessage:
+		if m.Type == MessageTypeSub {
 			c.handleSubMessage(msg)
 		} else {
 			c.handleUnSubMessage(msg)
@@ -172,8 +165,8 @@ func (c *Client) handleMessage(bts []byte) {
 func (c *Client) SendJSON(msg interface{}) {
 	b, err := json.Marshal(msg)
 	if err != nil {
-		errMsg, _ := json.Marshal(chat.Message{
-			Type: chat.MessageTypeServerErr,
+		errMsg, _ := json.Marshal(Message{
+			Type: MessageTypeServerErr,
 			Body: "failed to serialize response",
 		})
 		c.send <- errMsg
@@ -183,12 +176,12 @@ func (c *Client) SendJSON(msg interface{}) {
 	c.send <- b
 }
 
-func (c *Client) handleSubMessage(m *chat.SubscriptionMessage) {
+func (c *Client) handleSubMessage(m *SubscriptionMessage) {
 	for s := range c.subs {
 		if s.sub.Subject == m.Channel {
 			// User is already subscribed to the channel
-			r := chat.Message{
-				Type: chat.MessageTypeSubAck,
+			r := Message{
+				Type: MessageTypeSubAck,
 				Body: m,
 			}
 			c.SendJSON(r)
@@ -198,9 +191,9 @@ func (c *Client) handleSubMessage(m *chat.SubscriptionMessage) {
 
 	sub, err := c.gnats.Subscribe(m.Channel, c)
 	if err != nil {
-		r := chat.Message{
-			Type: chat.MessageTypeServerErr,
-			Body: chat.ServerErrorMessage{Message: "failed to create subscription"},
+		r := Message{
+			Type: MessageTypeServerErr,
+			Body: ServerErrorMessage{Message: "failed to create subscription"},
 		}
 		c.SendJSON(r)
 		return
@@ -208,14 +201,14 @@ func (c *Client) handleSubMessage(m *chat.SubscriptionMessage) {
 
 	c.subs[sub] = true
 
-	r := chat.Message{
-		Type: chat.MessageTypeSubAck,
+	r := Message{
+		Type: MessageTypeSubAck,
 		Body: m,
 	}
 	c.SendJSON(r)
 }
 
-func (c *Client) handleUnSubMessage(m *chat.SubscriptionMessage) {
+func (c *Client) handleUnSubMessage(m *SubscriptionMessage) {
 	var sub *Subscription
 	for s := range c.subs {
 		if s.sub.Subject == m.Channel {
@@ -225,8 +218,8 @@ func (c *Client) handleUnSubMessage(m *chat.SubscriptionMessage) {
 	}
 
 	if sub == nil {
-		c.SendJSON(chat.Message{
-			Type: chat.MessageTypeUnSubAck,
+		c.SendJSON(Message{
+			Type: MessageTypeUnSubAck,
 			Body: m,
 		})
 		return
@@ -237,14 +230,14 @@ func (c *Client) handleUnSubMessage(m *chat.SubscriptionMessage) {
 	err := sub.Unsubscribe(c)
 	if err != nil {
 		log.Errorf("Error occurred while un-subscribing user from channel: %s", err)
-		c.SendJSON(chat.Message{
-			Type: chat.MessageTypeServerErr,
-			Body: chat.ServerErrorMessage{Message: "Error occurred while un-subscribing from channel: " + m.Channel},
+		c.SendJSON(Message{
+			Type: MessageTypeServerErr,
+			Body: ServerErrorMessage{Message: "Error occurred while un-subscribing from channel: " + m.Channel},
 		})
 		return
 	}
-	c.SendJSON(chat.Message{
-		Type: chat.MessageTypeUnSubAck,
+	c.SendJSON(Message{
+		Type: MessageTypeUnSubAck,
 		Body: m,
 	})
 }
@@ -259,47 +252,59 @@ func (c *Client) handleChatMessage(m *ChatMessage) {
 	}
 	if !found {
 		msg := "You are not authorized to publish to channel: " + m.Channel
-		c.SendJSON(chat.Message{Type: chat.MessageTypeForbiddenErr, Body: chat.ServerErrorMessage{Message: msg}})
+		c.SendJSON(Message{Type: MessageTypeForbiddenErr, Body: ServerErrorMessage{Message: msg}})
 		return
 	}
 
 	chunks := strings.Split(m.Channel, ".")
 	if len(chunks) < 3 {
-		c.SendJSON(chat.Message{Type: chat.MessageTypeServerErr, Body: chat.ServerErrorMessage{Message: "Sever error occurred"}})
+		c.SendJSON(Message{Type: MessageTypeServerErr, Body: ServerErrorMessage{Message: "Sever error occurred"}})
 		log.Errorf("Unable to parse channel: %s", m.Channel)
 		return
 	}
 
-	dbMsg, err := c.cs.Store.SaveMessage(m.Content, chunks[2], c.user)
+	authPayload := c.ctx.MustGet(AuthorizationPayloadKey).(*token.Payload)
+	roomIdInt, _ := strconv.Atoi(chunks[2])
+	arg := db.SaveMessageParams{
+		Body:       m.Content,
+		Username:   authPayload.Username,
+		ChatRoomID: int64(roomIdInt),
+		PublicID:   uuid.NewV4().String(),
+	}
+
+	dbMsg, err := c.cs.SaveMessage(c.ctx, arg)
 	if err != nil {
 		if err.IsPublic {
-			c.SendJSON(chat.Message{Type: chat.MessageTypeValidationErr, Body: chat.ServerErrorMessage{Message: err.Message}})
+			c.SendJSON(Message{Type: MessageTypeValidationErr, Body: ServerErrorMessage{Message: err.Message}})
 		} else {
-			c.SendJSON(chat.Message{Type: chat.MessageTypeServerErr, Body: chat.ServerErrorMessage{Message: "Sever error occurred"}})
+			c.SendJSON(Message{Type: MessageTypeServerErr, Body: ServerErrorMessage{Message: "Sever error occurred"}})
 			log.Errorf("Error occurred while saving chat message %v", err)
 		}
 		return
 	}
-	m.ID = dbMsg.ID
+
+	msgID := dbMsg.ID
+	// convert string to Int
+	m.ID = msgID
 
 	b := bytes.Buffer{}
-	msg := chat.Message{Type: chat.MessageTypeChat, Body: dbMsg}
+	msg := Message{Type: MessageTypeChat, Body: dbMsg}
 	if err := gob.NewEncoder(&b).Encode(msg); err != nil {
 		log.Errorf("failed to serialize message to nats: %v", err)
-		r := chat.NewMessage(chat.MessageTypeServerErr, chat.NewServerErrorMessage("failed to process message"))
+		r := NewMessage(MessageTypeServerErr, NewServerErrorMessage("failed to process message"))
 		c.SendJSON(r)
 		return
 	}
 
 	if err := c.gnats.Publish(m.Channel, b.Bytes()); err != nil {
 		log.Errorf("failed to send message to gnats server: %v", err)
-		r := chat.NewMessage(chat.MessageTypeServerErr, chat.NewServerErrorMessage("failed to process message"))
+		r := NewMessage(MessageTypeServerErr, NewServerErrorMessage("failed to process message"))
 		c.SendJSON(r)
 		return
 	}
 	log.Debugf("Successfully sent chat message to gnatsd channel %s", m.Channel)
 
-	c.SendJSON(chat.NewMessage(chat.MessageTypeChatAck, m))
+	c.SendJSON(NewMessage(MessageTypeChatAck, m))
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -335,7 +340,7 @@ func (c *Client) readPump() {
 
 		if t == websocket.BinaryMessage {
 			log.Warnf("Client %s sent a binary message. Closing socket.", c.conn.RemoteAddr())
-			c.SendJSON(chat.NewMessage(chat.MessageTypeValidationErr, chat.NewServerErrorMessage("Binary messages not accepted.")))
+			c.SendJSON(NewMessage(MessageTypeValidationErr, NewServerErrorMessage("Binary messages not accepted.")))
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))

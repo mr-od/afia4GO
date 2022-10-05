@@ -1,11 +1,10 @@
-package main
+package api
 
 import (
 	"bytes"
 	"encoding/gob"
 	"sync"
 
-	"github.com/oddinnovate/a4go/chat"
 	log "github.com/sirupsen/logrus"
 
 	nats "github.com/nats-io/nats.go"
@@ -99,14 +98,14 @@ func (g *Gnats) Subscribe(ch string, client *Client) (*Subscription, error) {
 }
 
 func (g *Gnats) subscriptionHandler(msg *nats.Msg) {
-	m := chat.Message{}
+	m := Message{}
 	err := gob.NewDecoder(bytes.NewReader(msg.Data)).Decode(&m)
 	if err != nil {
 		log.Errorf("failed to decode gob message from gnats: %v", err)
 		return
 	}
 
-	if m.Type == chat.MessageTypeChat {
+	if m.Type == MessageTypeChat {
 		g.mu.RLock()
 		sub, f := g.subs[msg.Subject]
 		g.mu.RUnlock()

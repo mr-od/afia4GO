@@ -26,7 +26,7 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	refreshPayload, err := server.TokenMaker.VerifyToken(req.RefreshToken)
+	refreshPayload, err := server.Auth.VerifyToken(req.RefreshToken)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, util.ErrorResponse(err))
 	}
@@ -64,7 +64,7 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := server.TokenMaker.CreateToken(
+	accessToken, accessPayload, err := server.Auth.CreateToken(
 		refreshPayload.Username,
 		server.Config.AccessTokenDuration,
 	)

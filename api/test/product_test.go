@@ -83,7 +83,7 @@ func TestGetProduuctAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			tc.setupAuth(t, request, server.TokenMaker)
+			tc.setupAuth(t, request, server.Auth)
 			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})

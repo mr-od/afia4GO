@@ -93,7 +93,7 @@ func TestAuthMiddleware(t *testing.T) {
 			authPath := "/api/v1/auth"
 			server.Router.GET(
 				authPath,
-				api.AuthMiddleware(server.TokenMaker),
+				api.AuthMiddleware(server.Auth),
 				func(ctx *gin.Context) {
 					ctx.JSON(http.StatusOK, gin.H{})
 				},
@@ -102,7 +102,7 @@ func TestAuthMiddleware(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, authPath, nil)
 			require.NoError(t, err)
 
-			tc.setupAuth(t, request, server.TokenMaker)
+			tc.setupAuth(t, request, server.Auth)
 			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})

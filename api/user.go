@@ -113,7 +113,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := server.TokenMaker.CreateToken(
+	accessToken, accessPayload, err := server.Auth.CreateToken(
 		user.Username,
 		server.Config.AccessTokenDuration,
 	)
@@ -122,7 +122,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	refreshToken, refreshPayload, err := server.TokenMaker.CreateToken(
+	refreshToken, refreshPayload, err := server.Auth.CreateToken(
 		user.Username,
 		server.Config.RefreshTokenDuration,
 	)

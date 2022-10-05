@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -10,18 +9,28 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
-	"github.com/oddinnovate/a4go/chat"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/token"
 	"github.com/oddinnovate/a4go/util"
+	log "github.com/sirupsen/logrus"
 )
 
 type Server struct {
-	Config     util.Config
-	Store      db.Store
-	TokenMaker token.Maker
-	Router     *gin.Engine
+	Config util.Config
+	Store  db.Store
+	Auth   token.Maker
+	Router *gin.Engine
+	hub    *Hub
+	gnats  *Gnats
 	// chatService *chat.SeverC
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
@@ -30,9 +39,9 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 	server := &Server{
-		Config:     config,
-		Store:      store,
-		TokenMaker: tokenMaker,
+		Config: config,
+		Store:  store,
+		Auth:   tokenMaker,
 	}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -45,14 +54,16 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 
-	router := gin.Default()
+	// router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
 
 	// User Route
 	router.POST("/api/v1/users", server.createUser)
 	router.POST("/api/v1/users/login", server.loginUser)
 	router.POST("/api/v1/tokens/refresh_token", server.renewAccessToken)
 
-	authRoutes := router.Group("/").Use(AuthMiddleware(server.TokenMaker))
+	authRoutes := router.Group("/").Use(AuthMiddleware(server.Auth))
 
 	// Accounts Route
 	authRoutes.POST("api/v1/accounts", server.createAccount)
@@ -90,22 +101,22 @@ func errorResponse(err error) gin.H {
 func (s *Server) serveWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
-	u, err := authenticateSocket(conn, s.jwt)
+	u, err := authSocket(conn, s)
 	if err != nil {
-		if err1 := conn.WriteJSON(chat.Message{
-			Type: chat.MessageTypeUnauthorizedErr,
-			Body: chat.ServerErrorMessage{
+		if err1 := conn.WriteJSON(Message{
+			Type: MessageTypeUnauthorizedErr,
+			Body: ServerErrorMessage{
 				Message: "Auth error occurred",
 			},
 		}); err != nil {
-			log.Fatal("Got err while sending auth message: %v", err1)
+			log.Errorf("Got err while sending auth message: %v", err1)
 		}
 		if err2 := conn.Close(); err2 != nil {
-			log.Fatal("Got err while closing socket during auth: %v", err2)
+			log.Errorf("Got err while closing socket during auth: %v", err2)
 		}
 		return
 	}
@@ -135,7 +146,7 @@ type AuthRequest struct {
 	Token string `binding:"required"`
 }
 
-func authenticateSocket(conn *websocket.Conn, jwt *auth.JWT) (*auth.JWTUser, error) {
+func authSocket(conn *websocket.Conn, s *Server) (*token.Payload, error) {
 	if err := conn.SetReadDeadline(time.Now().Add(10 * time.Second)); err != nil {
 		log.Errorf("Error occurred while setting write deadline during auth: %v", err)
 		return nil, err
@@ -146,10 +157,10 @@ func authenticateSocket(conn *websocket.Conn, jwt *auth.JWT) (*auth.JWTUser, err
 		return nil, err
 	}
 
-	j, err := jwt.ParseAndValidateJWT(r.Token)
+	j, err := s.Auth.VerifyToken(r.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	return &j, nil
+	return j, nil
 }
