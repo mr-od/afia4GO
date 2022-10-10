@@ -1,16 +1,19 @@
-package main
+package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"net/http"
+
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/oddinnovate/a4go/api"
+	"github.com/google/uuid"
 	"github.com/oddinnovate/a4go/chat"
+	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/util"
 	log "github.com/sirupsen/logrus"
 
@@ -58,14 +61,6 @@ var (
 	space   = []byte{' '}
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
 	hub *Hub
@@ -80,15 +75,20 @@ type Client struct {
 
 	user *chat.JWTUser
 
-	cs *api.Server
+	cs *Server
 
 	validate *validator.Validate
 
+	utilErr *util.APIError
+	// calling gin ctx
+	// ctx *gin.Context
+
+	ctx context.Context
 	// Buffered channel of outbound messages.
 	send chan []byte
 }
 
-func newClient(hub *Hub, gnats *Gnats, conn *websocket.Conn, cs *api.Server, user *chat.JWTUser) *Client {
+func newClient(hub *Hub, gnats *Gnats, conn *websocket.Conn, cs *Server, user *chat.JWTUser, utilErr *util.APIError) *Client {
 	return &Client{
 		hub:      hub,
 		gnats:    gnats,
@@ -270,17 +270,27 @@ func (c *Client) handleChatMessage(m *ChatMessage) {
 		return
 	}
 
-	dbMsg, err := c.cs.Store.SaveMessage(m.Content, chunks[2], c.user)
+	nChunk, _ := strconv.ParseInt(chunks[2], 10, 64)
+	// authPayload := ctx.MustGet(api.AuthorizationPayloadKey).(*token.Payload)
+	arg := db.SaveMessageParams{
+		Body:       m.Content,
+		Username:   c.user.Username,
+		ChatRoomID: nChunk,
+		PublicID:   uuid.NewString(),
+	}
+
+	dbMsg, err := c.cs.Store.SaveMessage(c.ctx, arg)
 	if err != nil {
-		if err.IsPublic {
-			c.SendJSON(chat.Message{Type: chat.MessageTypeValidationErr, Body: chat.ServerErrorMessage{Message: err.Message}})
+		if c.utilErr.IsPublic {
+			c.SendJSON(chat.Message{Type: chat.MessageTypeValidationErr, Body: chat.ServerErrorMessage{Message: c.utilErr.Message}})
 		} else {
 			c.SendJSON(chat.Message{Type: chat.MessageTypeServerErr, Body: chat.ServerErrorMessage{Message: "Sever error occurred"}})
 			log.Errorf("Error occurred while saving chat message %v", err)
 		}
 		return
 	}
-	m.ID = dbMsg.ID
+
+	m.ID = strconv.Itoa(int(dbMsg.ID))
 
 	b := bytes.Buffer{}
 	msg := chat.Message{Type: chat.MessageTypeChat, Body: dbMsg}

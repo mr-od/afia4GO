@@ -2,15 +2,15 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/websocket"
-	"github.com/oddinnovate/a4go/chat"
 	db "github.com/oddinnovate/a4go/db/sqlc"
 	"github.com/oddinnovate/a4go/token"
 	"github.com/oddinnovate/a4go/util"
@@ -21,7 +21,17 @@ type Server struct {
 	Store      db.Store
 	TokenMaker token.Maker
 	Router     *gin.Engine
-	// chatService *chat.SeverC
+	hub        *Hub
+	gnats      *Gnats
+	// chatService *
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
@@ -90,22 +100,22 @@ func errorResponse(err error) gin.H {
 func (s *Server) serveWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return
 	}
 
-	u, err := authenticateSocket(conn, s.jwt)
+	u, err := authSocket(conn, s)
 	if err != nil {
-		if err1 := conn.WriteJSON(chat.Message{
-			Type: chat.MessageTypeUnauthorizedErr,
-			Body: chat.ServerErrorMessage{
+		if err1 := conn.WriteJSON(Message{
+			Type: MessageTypeUnauthorizedErr,
+			Body: ServerErrorMessage{
 				Message: "Auth error occurred",
 			},
 		}); err != nil {
-			log.Fatal("Got err while sending auth message: %v", err1)
+			log.Errorf("Got err while sending auth message: %v", err1)
 		}
 		if err2 := conn.Close(); err2 != nil {
-			log.Fatal("Got err while closing socket during auth: %v", err2)
+			log.Errorf("Got err while closing socket during auth: %v", err2)
 		}
 		return
 	}
@@ -122,7 +132,7 @@ func (s *Server) serveWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := newClient(s.hub, s.gnats, conn, s.chatService, u)
+	client := newClient(s.hub, s.gnats, conn, u)
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
@@ -135,7 +145,7 @@ type AuthRequest struct {
 	Token string `binding:"required"`
 }
 
-func authenticateSocket(conn *websocket.Conn, jwt *auth.JWT) (*auth.JWTUser, error) {
+func authSocket(conn *websocket.Conn, s *Server) (*token.Payload, error) {
 	if err := conn.SetReadDeadline(time.Now().Add(10 * time.Second)); err != nil {
 		log.Errorf("Error occurred while setting write deadline during auth: %v", err)
 		return nil, err
@@ -146,10 +156,10 @@ func authenticateSocket(conn *websocket.Conn, jwt *auth.JWT) (*auth.JWTUser, err
 		return nil, err
 	}
 
-	j, err := jwt.ParseAndValidateJWT(r.Token)
+	j, err := s.TokenMaker.VerifyToken(r.Token)
 	if err != nil {
 		return nil, err
 	}
 
-	return &j, nil
+	return j, nil
 }
